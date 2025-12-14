@@ -10,6 +10,8 @@ import ReactPagination from '../ReactPagination/ReactPagination';
 import { fetchMovies, type FetchMoviesResponse } from '../../services/movieService';
 import type { Movie } from '../../types/movie';
 import './App.module.css';
+import { keepPreviousData } from '@tanstack/react-query';
+
 
 export default function App() {
   const [query, setQuery] = useState('');
@@ -20,7 +22,7 @@ export default function App() {
   queryKey: ['movies', query, page],
   queryFn: () => fetchMovies(query, page),
   enabled: !!query,
-  placeholderData: { results: [], total_pages: 0, page: 1, total_results: 0 },
+  placeholderData: keepPreviousData,
 });
 
 const { data, isLoading, isError } = queryResult;
