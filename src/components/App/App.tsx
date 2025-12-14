@@ -6,7 +6,7 @@ import MovieGrid from '../MovieGrid/MovieGrid';
 import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import MovieModal from '../MovieModal/MovieModal';
-import Pagination from '../ReactPagination/ReactPagination';
+import ReactPagination from '../ReactPagination/ReactPagination';
 import { fetchMovies, type FetchMoviesResponse } from '../../services/movieService';
 import type { Movie } from '../../types/movie';
 import './App.module.css';
@@ -16,24 +16,29 @@ export default function App() {
   const [page, setPage] = useState(1);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const queryResult = useQuery<FetchMoviesResponse, Error>({
-    queryKey: ['movies', query, page],
-    queryFn: () => fetchMovies(query, page),
-    enabled: !!query,
-  });
+ const queryResult = useQuery<FetchMoviesResponse, Error>({
+  queryKey: ['movies', query, page],
+  queryFn: () => fetchMovies(query, page),
+  enabled: !!query,
+  placeholderData: { results: [], total_pages: 0, page: 1, total_results: 0 },
+});
 
-  const { data, isLoading, isError } = queryResult;
+const { data, isLoading, isError } = queryResult;
+const [hasSearched, setHasSearched] = useState(false);
 
-  useEffect(() => {
-    if (data && data.results.length === 0) {
-      toast.error('No movies found for your request.');
-    }
-  }, [data]);
+const handleSearch = (searchQuery: string) => {
+  setQuery(searchQuery);
+  setPage(1); 
+  setHasSearched(true);
+};
 
-  const handleSearch = (searchQuery: string) => {
-    setQuery(searchQuery);
-    setPage(1); 
-  };
+useEffect(() => {
+  if (hasSearched && !queryResult.isFetching && data && data.results.length === 0) {
+    toast.error('No movies found for your request.');
+  }
+}, [data, hasSearched, queryResult.isFetching]);
+
+
 
   return (
     <>
@@ -44,9 +49,9 @@ export default function App() {
       {isError && <ErrorMessage />}
       {!isLoading && !isError && (
         <>
-          {data && data.total_pages > 1 && (
-            <Pagination totalPages={data.total_pages} page={page} setPage={setPage} />
-          )}
+         {data && data.total_pages > 1 && (
+            <ReactPagination pageCount={data.total_pages} forcePage={page} onPageChange={setPage} /> )}
+
           <MovieGrid movies={data?.results ?? []} onSelect={setSelectedMovie} />
           
         </>

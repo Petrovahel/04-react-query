@@ -4,9 +4,13 @@ import type { Movie } from '../types/movie';
 const BASE_URL = 'https://api.themoviedb.org/3/search/movie';
 
 export interface FetchMoviesResponse {
+  page: number;
   results: Movie[];
   total_pages: number;
+  total_results: number;
 }
+
+
 
 export async function fetchMovies(query: string, page: number = 1): Promise<FetchMoviesResponse> {
   const token = import.meta.env.VITE_TMDB_TOKEN;
